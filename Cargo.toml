@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "primeoxide_lib",
+    "primeoxide_bin"
+]
