@@ -2,7 +2,7 @@ use std::env::args;
 use primeoxide_lib::erat;
 
 fn main() {
-    let (prog_name, num): (_, u64) = {
+    let (_program_name, num): (_, u64) = {
         let mut args = args();
         (args.next().unwrap(), args.next().unwrap().parse().unwrap())
     };
