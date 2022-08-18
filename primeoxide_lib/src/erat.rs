@@ -22,10 +22,10 @@ pub fn sieve(stop: u64) -> Vec<u64> {
     if stop < u64::MAX {
         let mut num = 11;
 
-        'prime_search: while num <= stop {
+        while num <= stop {
             if !numbers.get_bit((num - 1) as usize) {
                 num += wheel.next_inc();
-                continue 'prime_search
+                continue;
             }
 
             let root = (num as f64).sqrt() as u64;
@@ -38,7 +38,7 @@ pub fn sieve(stop: u64) -> Vec<u64> {
 
                 if num%prime == 0 {
                     num += wheel.next_inc();
-                    continue 'prime_search
+                    continue;
                 }
             }
 
