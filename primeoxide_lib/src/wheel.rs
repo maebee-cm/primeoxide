@@ -23,4 +23,17 @@ impl Wheel {
 
         ret
     }
+
+    pub fn sync(&mut self, other: &Wheel) {
+        self.vec_idx = other.vec_idx;
+    }
+}
+
+impl Clone for Wheel {
+    fn clone(&self) -> Self {
+        Wheel {
+            inc_list: self.inc_list.clone(),
+            vec_idx: self.vec_idx
+        }
+    }
 }
