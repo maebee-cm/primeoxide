@@ -21,6 +21,7 @@ pub fn sieve(stop: u64) -> Vec<u64> {
 
     if stop < u64::MAX {
         let mut num = 11;
+        let stop_root = (stop as f64).sqrt() as u64;
 
         while num <= stop {
             if !numbers.get_bit((num - 1) as usize) {
@@ -28,22 +29,8 @@ pub fn sieve(stop: u64) -> Vec<u64> {
                 continue;
             }
 
-            let root = (num as f64).sqrt() as u64;
-
-            // we KNOW that no multiples of 2, 3, 5, or 7 are included
-            for prime in &primes[4..] {
-                if *prime > root {
-                    break;
-                }
-
-                if num%prime == 0 {
-                    num += wheel.next_inc();
-                    continue;
-                }
-            }
-
             // Only get here if no factors were found
-            if num <= (stop as f64).sqrt() as u64 {
+            if num <= stop_root {
                 multiplier_wheel.sync(&wheel);
                 let mut multiplier = num;
                 let mut result = multiplier*num;
