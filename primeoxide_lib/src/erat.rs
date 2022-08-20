@@ -6,7 +6,7 @@ const WHEEL210_INC: [u64; 48] = [2, 4, 2, 4, 6, 2, 6, 4, 2, 4, 6, 6, 2, 6, 4, 2,
     4, 2, 4, 8, 6, 4, 6, 2, 4, 6, 2, 6, 6, 4, 2, 4, 6, 2, 6, 4, 2, 4, 2, 10, 2, 10];
 
 pub fn sieve(stop: u64) -> Vec<u64> {
-    let mut wheel = Wheel::new(WHEEL210_INC.to_vec());
+    let mut wheel = Wheel::new(&WHEEL210_INC);
     // Create this here rather than when we use it, sync later. Stops expensive allocation from
     // happening everytime we find a new prime.
     let mut multiplier_wheel = wheel.clone();

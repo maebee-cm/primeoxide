@@ -1,12 +1,12 @@
-pub struct Wheel {
+pub struct Wheel<'a> {
     /// A list of increments to loop through
-    inc_list: Vec<u64>,
+    inc_list: &'a [u64],
     /// What index of the vector are we at
     vec_idx: usize,
 }
 
-impl Wheel {
-    pub fn new(inc_list: Vec<u64>) -> Wheel {
+impl<'a> Wheel<'a> {
+    pub fn new(inc_list: &'a [u64]) -> Wheel {
         Wheel {
             inc_list,
             vec_idx: 0
@@ -29,10 +29,10 @@ impl Wheel {
     }
 }
 
-impl Clone for Wheel {
+impl<'a> Clone for Wheel<'a> {
     fn clone(&self) -> Self {
         Wheel {
-            inc_list: self.inc_list.clone(),
+            inc_list: self.inc_list,
             vec_idx: self.vec_idx
         }
     }
