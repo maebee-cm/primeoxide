@@ -16,5 +16,5 @@ fn main() {
 
 
     println!("Seconds: {:.3}", time);
-    println!("Primes: {}.", primes.len());
+    println!("Primes: {}", primes.len());
 }
