@@ -1,6 +1,6 @@
 # Primeoxide
 
-Primeoxide is a hobby project of mine inspired by the brilliantly,
+Primeoxide is a hobby project of mine inspired by the brilliant, and
 blisteringly fast [primesieve](https://github.com/kimwalisch/primesieve).
 
 While still far from being mature, my hope and goal is to write an equivalent
