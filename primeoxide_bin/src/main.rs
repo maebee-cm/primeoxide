@@ -4,9 +4,30 @@ use std::time::Instant;
 use primeoxide_lib::erat;
 
 fn main() {
-    let (_program_name, num): (_, u64) = {
+    let (program_name, num) = {
         let mut args = args();
-        (args.next().unwrap(), args.next().unwrap().parse().unwrap())
+        (args.next().unwrap(), args.next())
+    };
+
+    let num = if let Some(string) = num {
+        string
+    } else {
+        println!(
+            "No argument supplied proper usage: {} <number>",
+            program_name
+        );
+        return;
+    };
+
+    let num = match num.parse() {
+        Ok(val) => val,
+        Err(e) => {
+            println!(
+                "Failed to parse supplied number \"{}\" with error: {}\nproper usage: {} <number>",
+                num, e, program_name
+            );
+            return;
+        }
     };
 
     let start = Instant::now();
