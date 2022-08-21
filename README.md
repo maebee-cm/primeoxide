@@ -8,7 +8,7 @@ in pure Rust to match primesieve's speed.
 
 # Usage examples
 
-```
+```sh
 # 1 million
 primesieve_bin 1000000
 Seconds: 0.004
