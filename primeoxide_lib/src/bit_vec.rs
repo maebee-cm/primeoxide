@@ -9,6 +9,7 @@ pub struct BitVec {
 }
 
 impl BitVec {
+    /// Initialize a new `BitVec` that holds `length` bits and initializes all bits to `value`.
     pub fn with_capacity(length: usize, value: bool) -> BitVec {
         let mut bit_length = length % 64;
 
@@ -27,6 +28,7 @@ impl BitVec {
         }
     }
 
+    /// Set the nth bit specified by `index` to `value`.
     pub fn set_bit(&mut self, index: usize, value: bool) {
         let u64_index = index / 64;
         let bit_shift = index % 64;
@@ -52,6 +54,7 @@ impl BitVec {
         }
     }
 
+    /// Get the value of the nth bit specified by `index`.
     pub fn get_bit(&self, index: usize) -> bool {
         let u64_index = index / 64;
         let bit_shift = index % 64;
@@ -71,6 +74,7 @@ impl BitVec {
         unsafe { (self.data.get_unchecked(u64_index) & bit_mask) != 0 }
     }
 
+    /// Get the length of the vector in bits.
     pub fn len(&self) -> usize {
         (self.data.len() - 1) * 64 + self.bit_length
     }
@@ -95,7 +99,8 @@ impl BitVec {
         self.bit_length = new_bit_length;
     }
 
-    /// Gets the count of how many bits are set to 1, in the range [0..index]
+    /// Gets the count of how many bits are set to 1, in the range [0..index], should `index` be
+    /// a `Some`
     pub fn get_population_count(&self, index: Option<usize>) -> usize {
         let index = if let Some(x) = index {
             x

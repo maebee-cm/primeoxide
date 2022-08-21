@@ -13,6 +13,7 @@ const WHEEL210: [u64; 48] = [
     187, 191, 193, 197, 199, 209,
 ];
 
+/// Performs a sieve of Eratosthenes in the number range [2..`stop`]
 pub fn sieve(stop: u64) -> (BitVec, u64) {
     let wheel_size = 210;
     let wheel_len = WHEEL210_INC.len() as u64;
@@ -69,6 +70,7 @@ pub fn sieve(stop: u64) -> (BitVec, u64) {
     (numbers, primes_counter)
 }
 
+/// Get the index of the number passed
 fn get_num_idx(num: u64) -> usize {
     // Our number line starts at 11, yet our list of remainders starts 1. The calculations doesn't
     // really work if the number line doesn't start at 1, and it's more of a headache to have the
