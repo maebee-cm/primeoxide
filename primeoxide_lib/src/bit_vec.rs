@@ -31,11 +31,13 @@ impl BitVec {
         let u64_index = index / 64;
         let bit_shift = index % 64;
 
-        if u64_index == self.data.len() - 1 && bit_shift > self.bit_length {
-            panic!(
+        if u64_index == self.data.len() {
+            assert!(
+                bit_shift <= self.bit_length,
                 "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit \
-            index accessed is {}",
-                self.bit_length, bit_shift
+                index accessed is {}",
+                self.bit_length,
+                bit_shift
             );
         }
 
@@ -54,11 +56,13 @@ impl BitVec {
         let u64_index = index / 64;
         let bit_shift = index % 64;
 
-        if u64_index == self.data.len() - 1 && bit_shift > self.bit_length {
-            panic!(
+        if u64_index == self.data.len() {
+            assert!(
+                bit_shift <= self.bit_length,
                 "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit \
-            index accessed is {}",
-                self.bit_length, bit_shift
+                index accessed is {}",
+                self.bit_length,
+                bit_shift
             );
         }
 
@@ -104,20 +108,20 @@ impl BitVec {
         let last_u64_index = index / 64;
         let last_u64_bits = index % 64;
 
-        if last_u64_index > self.data.len() {
-            panic!(
-                "Index out of bounds, accessing bytes beyond allocated memory. The len is {} but \
-            the index is {}",
-                self.data.len(),
-                last_u64_index
-            );
-        } else if last_u64_index == self.data.len() && last_u64_bits > self.bit_length {
-            panic!(
-                "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit \
-            index accessed is {}",
-                self.bit_length, last_u64_bits
-            );
-        }
+        assert!(
+            last_u64_index >= self.data.len(),
+            "Index out of bounds, accessing bytes beyond allocated memory. The len is {} but the \
+            index is {}",
+            self.data.len(),
+            last_u64_index
+        );
+        assert!(
+            last_u64_index == self.data.len() && last_u64_bits > self.bit_length,
+            "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit index \
+            accessed is {}",
+            self.bit_length,
+            last_u64_bits
+        );
 
         let mut pop_count: usize = 0;
 
