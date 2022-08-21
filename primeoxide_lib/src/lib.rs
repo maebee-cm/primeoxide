@@ -1,5 +1,5 @@
-pub mod erat;
 mod bit_vec;
+pub mod erat;
 mod wheel;
 
 #[cfg(test)]

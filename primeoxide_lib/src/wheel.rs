@@ -9,7 +9,7 @@ impl<'a> Wheel<'a> {
     pub fn new(inc_list: &'a [u64]) -> Wheel {
         Wheel {
             inc_list,
-            vec_idx: 0
+            vec_idx: 0,
         }
     }
 
@@ -33,7 +33,7 @@ impl<'a> Clone for Wheel<'a> {
     fn clone(&self) -> Self {
         Wheel {
             inc_list: self.inc_list,
-            vec_idx: self.vec_idx
+            vec_idx: self.vec_idx,
         }
     }
 }
