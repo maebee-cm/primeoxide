@@ -31,7 +31,8 @@ fn main() {
     };
 
     let start = Instant::now();
-    let (_primes, prime_count) = erat::sieve(num);
+    let primes = erat::sieve(num);
+    let prime_count = primes.get_population_count(None);
     let end = start.elapsed();
     let time = end.as_secs() as f64 + end.subsec_millis() as f64 / 1000.0;
 
