@@ -3,16 +3,16 @@ pub struct BitVec {
     /// Contains the data of the vector
     pub data: Vec<u64>,
     /// How many bits of the last byte are in use.
-    bit_length: usize,
+    last_byte_bits: usize,
 }
 
 impl BitVec {
     /// Initialize a new `BitVec` that holds `length` bits and initializes all bits to `value`.
     pub fn with_capacity(length: usize, value: bool) -> BitVec {
-        let mut bit_length = length % 64;
+        let mut last_byte_bits = length % 64;
 
-        let u64_length = if bit_length == 0 {
-            bit_length = 64;
+        let u64_length = if last_byte_bits == 0 {
+            last_byte_bits = 64;
             length / 64
         } else {
             length / 64 + 1
@@ -22,7 +22,7 @@ impl BitVec {
 
         BitVec {
             data: vec![default_value; u64_length],
-            bit_length,
+            last_byte_bits,
         }
     }
 
@@ -33,10 +33,10 @@ impl BitVec {
 
         if u64_index >= self.data.len()-1 {
             assert!(
-                bit_shift <= self.bit_length,
+                bit_shift <= self.last_byte_bits,
                 "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit \
                 index accessed is {}",
-                self.bit_length,
+                self.last_byte_bits,
                 bit_shift
             );
         }
@@ -59,10 +59,10 @@ impl BitVec {
 
         if u64_index >= self.data.len() {
             assert!(
-                bit_shift <= self.bit_length,
+                bit_shift <= self.last_byte_bits,
                 "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit \
                 index accessed is {}",
-                self.bit_length,
+                self.last_byte_bits,
                 bit_shift
             );
         }
@@ -74,19 +74,19 @@ impl BitVec {
 
     /// Get the length of the vector in bits.
     pub fn len(&self) -> usize {
-        (self.data.len() - 1) * 64 + self.bit_length
+        (self.data.len() - 1) * 64 + self.last_byte_bits
     }
 
     /// Resize the vector to contain `size` bits.
     pub fn resize(&mut self, size: usize, value: bool) {
-        let current_bit_length = (self.data.len() - 1) * 64 + self.bit_length as usize;
-        if current_bit_length == size {
+        let current_last_byte_bits = (self.data.len() - 1) * 64 + self.last_byte_bits as usize;
+        if current_last_byte_bits == size {
             return;
         }
 
-        let mut new_bit_length = size % 64;
-        let u64_length = if new_bit_length == 0 {
-            new_bit_length = 64;
+        let mut new_last_byte_bits = size % 64;
+        let u64_length = if new_last_byte_bits == 0 {
+            new_last_byte_bits = 64;
             size / 64
         } else {
             size / 64 + 1
@@ -94,44 +94,49 @@ impl BitVec {
 
         let value = if value { u64::MAX } else { 0 };
         self.data.resize(u64_length, value);
-        self.bit_length = new_bit_length;
+        self.last_byte_bits = new_last_byte_bits;
     }
 
-    /// Gets the count of how many bits are set to 1, in the range `[0..end]` if `end` is [Some]
-    pub fn get_population_count(&self, end: Option<usize>) -> usize {
-        let end = end.unwrap_or(self.data.len() - 1 * 64 + self.bit_length);
+    /// Gets the count of how many bits are set to 1 from `[start..self.len()]`. If `start` is
+    /// [None] then the range is `[0..self.len]`.
+    pub fn get_population_count(&self, start: Option<usize>) -> u64 {
+        let start = start.unwrap_or(0);
+        let mut first_u64_index = start / 64;
+        let first_byte_bits = start % 64;
 
-        // Index of the last byte that we'd be checking, since we aren't checking all its bits
-        // necessarily
-        let last_u64_index = end / 64;
-        let last_u64_bits = end % 64;
+        // Index of the last byte we're checking with count_ones(). If the self.last_byte_bits is
+        // not exactly 64, then we have to use a slower method of counting.
+        let last_u64_index = if self.last_byte_bits == 64 {
+            self.data.len()
+        } else {
+            self.data.len() - 1
+        };
 
-        assert!(
-            last_u64_index >= self.data.len(),
-            "Index out of bounds, accessing bytes beyond allocated memory. The len is {} but the \
-            index is {}",
-            self.data.len(),
-            last_u64_index
-        );
-        assert!(
-            last_u64_index >= self.data.len() && last_u64_bits > self.bit_length,
-            "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit index \
-            accessed is {}",
-            self.bit_length,
-            last_u64_bits
-        );
+        let mut pop_count: u64 = 0;
 
-        let mut pop_count: usize = 0;
+        // we have to round to the closest u64
+        if first_byte_bits != 64 {
+            let first_u64 = unsafe { *self.data.get_unchecked(first_u64_index) };
+            for i in first_byte_bits..64 {
+                if first_u64 & (1u64 << i) != 0 {
+                    pop_count += 1;
+                }
+            }
 
-        for u64_index in 0..last_u64_index {
-            let u64_val = unsafe { *self.data.get_unchecked(u64_index) };
-            pop_count += u64_val.count_ones() as usize;
+            first_u64_index += 1;
         }
 
-        let last_u64 = unsafe { *self.data.get_unchecked(last_u64_index) };
-        for i in 0..last_u64_bits {
-            if last_u64 & (1u64 << i) != 0 {
-                pop_count += 1;
+        for u64_index in first_u64_index..last_u64_index {
+            let u64_val = unsafe { *self.data.get_unchecked(u64_index) };
+            pop_count += u64_val.count_ones() as u64;
+        }
+
+        if self.last_byte_bits != 64 {
+            let last_u64 = unsafe { *self.data.get_unchecked(last_u64_index) };
+            for i in 0..self.last_byte_bits {
+                if last_u64 & (1u64 << i) != 0 {
+                    pop_count += 1;
+                }
             }
         }
 
