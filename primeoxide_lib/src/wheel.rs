@@ -27,6 +27,10 @@ impl<'a> Wheel<'a> {
     pub fn sync(&mut self, other: &Wheel) {
         self.vec_idx = other.vec_idx;
     }
+
+    pub fn reset(&mut self) {
+        self.vec_idx = 0;
+    }
 }
 
 impl<'a> Clone for Wheel<'a> {
