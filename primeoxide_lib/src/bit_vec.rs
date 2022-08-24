@@ -1,5 +1,3 @@
-use std::arch::x86_64::_popcnt64;
-
 /// A contiguous growable bit-wise array.
 pub struct BitVec {
     /// Contains the data of the vector
@@ -33,7 +31,7 @@ impl BitVec {
         let u64_index = index / 64;
         let bit_shift = index % 64;
 
-        if u64_index == self.data.len() {
+        if u64_index >= self.data.len()-1 {
             assert!(
                 bit_shift <= self.bit_length,
                 "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit \
@@ -59,7 +57,7 @@ impl BitVec {
         let u64_index = index / 64;
         let bit_shift = index % 64;
 
-        if u64_index == self.data.len() {
+        if u64_index >= self.data.len() {
             assert!(
                 bit_shift <= self.bit_length,
                 "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit \
@@ -99,19 +97,14 @@ impl BitVec {
         self.bit_length = new_bit_length;
     }
 
-    /// Gets the count of how many bits are set to 1, in the range [0..index], should `index` be
-    /// a `Some`
-    pub fn get_population_count(&self, index: Option<usize>) -> usize {
-        let index = if let Some(x) = index {
-            x
-        } else {
-            (self.data.len() - 1) * 64 + self.bit_length as usize
-        };
+    /// Gets the count of how many bits are set to 1, in the range `[0..end]` if `end` is [Some]
+    pub fn get_population_count(&self, end: Option<usize>) -> usize {
+        let end = end.unwrap_or(self.data.len() - 1 * 64 + self.bit_length);
 
-        // index of the last byte that we'd be checking, since we aren't checking all its bits
+        // Index of the last byte that we'd be checking, since we aren't checking all its bits
         // necessarily
-        let last_u64_index = index / 64;
-        let last_u64_bits = index % 64;
+        let last_u64_index = end / 64;
+        let last_u64_bits = end % 64;
 
         assert!(
             last_u64_index >= self.data.len(),
@@ -121,7 +114,7 @@ impl BitVec {
             last_u64_index
         );
         assert!(
-            last_u64_index == self.data.len() && last_u64_bits > self.bit_length,
+            last_u64_index >= self.data.len() && last_u64_bits > self.bit_length,
             "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit index \
             accessed is {}",
             self.bit_length,
@@ -132,16 +125,7 @@ impl BitVec {
 
         for u64_index in 0..last_u64_index {
             let u64_val = unsafe { *self.data.get_unchecked(u64_index) };
-
-            if cfg!(x86_64) {
-                pop_count += unsafe { _popcnt64(u64_val as i64) as usize };
-            } else {
-                for i in 0..64 {
-                    if u64_val & (1u64 << i) != 0 {
-                        pop_count += 1;
-                    }
-                }
-            }
+            pop_count += u64_val.count_ones() as usize;
         }
 
         let last_u64 = unsafe { *self.data.get_unchecked(last_u64_index) };
