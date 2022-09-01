@@ -80,9 +80,24 @@ pub fn sieve(stop: u64) -> BitVec {
 
 /// Get the index of the number passed
 fn get_num_idx(num: u64) -> usize {
+    let div = num/210;
+    let rem = num%210;
+
+    // for some awful reason this is faster than using iter().position() on WHEEL210
+    let mut wheel_pos = 0;
+    for i in 0..WHEEL210.len() {
+        unsafe {
+            let wheel_value = *WHEEL210.get_unchecked(i);
+            if wheel_value == rem {
+                wheel_pos = i;
+                break
+            }
+        }
+    }
+
     // Our number line starts at 11, yet our list of remainders starts 1. The calculations doesn't
     // really work if the number line doesn't start at 1, and it's more of a headache to have the
     // the vector start with 1. So instead this formula produced the index for a 1-indexed array
     // and then we increment by (4-1) since there are 4 pres-sieved primes.
-    (num / 210 * 48) as usize + WHEEL210.iter().position(|&x| x == num % 210).unwrap() + 3
+    (div * 48) as usize + wheel_pos + 3
 }
