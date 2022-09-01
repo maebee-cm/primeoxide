@@ -8,7 +8,7 @@ mod tests {
 
     #[test]
     fn print_primes() {
-        let (_primes, prime_count) = erat::sieve(1000000);
-        assert_eq!(prime_count, 78498);
+        let primes = erat::sieve(1000000);
+        assert_eq!(primes.get_population_count(None), 78498);
     }
 }
