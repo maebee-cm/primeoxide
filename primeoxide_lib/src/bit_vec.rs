@@ -27,19 +27,9 @@ impl BitVec {
     }
 
     /// Set the nth bit specified by `index` to `value`.
-    pub fn set_bit(&mut self, index: usize, value: bool) {
+    pub unsafe fn set_bit(&mut self, index: usize, value: bool) {
         let u64_index = index / 64;
         let bit_shift = index % 64;
-
-        if u64_index >= self.data.len()-1 {
-            assert!(
-                bit_shift <= self.last_byte_bits,
-                "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit \
-                index accessed is {}",
-                self.last_byte_bits,
-                bit_shift
-            );
-        }
 
         let bit_mask = if value {
             1u64 << (bit_shift)
@@ -47,29 +37,17 @@ impl BitVec {
             !(1u64 << (bit_shift))
         };
 
-        unsafe {
-            *self.data.get_unchecked_mut(u64_index) &= bit_mask;
-        }
+        *self.data.get_unchecked_mut(u64_index) &= bit_mask;
     }
 
     /// Get the value of the nth bit specified by `index`.
-    pub fn get_bit(&self, index: usize) -> bool {
+    pub unsafe fn get_bit(&self, index: usize) -> bool {
         let u64_index = index / 64;
         let bit_shift = index % 64;
 
-        if u64_index >= self.data.len() {
-            assert!(
-                bit_shift <= self.last_byte_bits,
-                "Index out of bounds, accessing uninitialized bits. Bit length is {} but the bit \
-                index accessed is {}",
-                self.last_byte_bits,
-                bit_shift
-            );
-        }
-
         let bit_mask = 1u64 << bit_shift;
 
-        unsafe { (self.data.get_unchecked(u64_index) & bit_mask) != 0 }
+        (self.data.get_unchecked(u64_index) & bit_mask) != 0
     }
 
     /// Get the length of the vector in bits.
