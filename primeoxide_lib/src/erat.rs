@@ -1,7 +1,6 @@
 use super::bit_vec::BitVec;
 use super::wheel::Wheel;
 
-const _WHEEL30_INC: [u64; 8] = [4, 2, 4, 2, 4, 6, 2, 6];
 const WHEEL210_INC: [u64; 48] = [
     2, 4, 2, 4, 6, 2, 6, 4, 2, 4, 6, 6, 2, 6, 4, 2, 6, 4, 6, 8, 4, 2, 4, 2, 4, 8, 6, 4, 6, 2, 4, 6,
     2, 6, 6, 4, 2, 4, 6, 2, 6, 4, 2, 4, 2, 10, 2, 10,
@@ -40,62 +39,46 @@ pub fn sieve(stop: u64) -> BitVec {
 
     let mut numbers = BitVec::with_capacity(bits, true);
 
-    if stop < u64::MAX {
-        let mut num = 11;
-        // iterations starts at 4 because we treat the pre-sieved 2, 3, 5, and 7 as if they were
-        // made in here
-        let mut iterations = 4;
-        let stop_root = (stop as f64).sqrt() as u64;
+    let mut num = 11;
+    // iterations starts at 4 because we treat the pre-sieved 2, 3, 5, and 7 as if they were
+    // made in here
+    let mut iterations = 4;
+    let stop_root = (stop as f64).sqrt() as u64;
 
-        while num <= stop_root {
-            if !numbers.get_bit(iterations) {
-                num += wheel.next_inc();
-                iterations += 1;
-                continue;
-            }
-
-            // Only get here if no factors were found
-            multiplier_wheel.sync(&wheel);
-            let mut multiplier = num;
-            let mut result = multiplier * num;
-            while result <= stop {
-                let index = get_num_idx(result);
-                numbers.set_bit(index, false);
-
-                multiplier += multiplier_wheel.next_inc();
-                result = multiplier * num;
-            }
-
+    while num <= stop_root {
+        if !unsafe {numbers.get_bit(iterations)} {
             num += wheel.next_inc();
             iterations += 1;
+            continue;
         }
 
-        // all non primes have been marked off at this point. Let bit_vec take care of population
-        // counting the rest of the vector.
-        numbers.get_population_count(Some(iterations as usize));
+        // Only get here if no factors were found
+        multiplier_wheel.sync(&wheel);
+        let mut multiplier = num;
+        let mut result = multiplier * num;
+        while result <= stop {
+            let index = unsafe { get_num_idx(result) };
+            unsafe { numbers.set_bit(index, false); }
+
+            multiplier += multiplier_wheel.next_inc();
+            result = multiplier * num;
+        }
+
+        num += wheel.next_inc();
+        iterations += 1;
     }
 
     numbers
 }
 
 /// Get the index of the number passed
-fn get_num_idx(num: u64) -> usize {
+unsafe fn get_num_idx(num: u64) -> usize {
     let div = num/210;
     let rem = num%210;
 
-    // for some awful reason this is faster than using iter().position() on WHEEL210
-    let mut wheel_pos = 0;
-    for i in 0..WHEEL210.len() {
-        unsafe {
-            let wheel_value = *WHEEL210.get_unchecked(i);
-            if wheel_value == rem {
-                wheel_pos = i;
-                break
-            }
-        }
-    }
+    let mut wheel_pos = WHEEL210.iter().position(|&x| x == rem).unwrap();
 
-    // Our number line starts at 11, yet our list of remainders starts 1. The calculations doesn't
+    // Our number line starts at 11, yet our list of remainders starts at 1. The calculations doesn't
     // really work if the number line doesn't start at 1, and it's more of a headache to have the
     // the vector start with 1. So instead this formula produced the index for a 1-indexed array
     // and then we increment by (4-1) since there are 4 pres-sieved primes.
