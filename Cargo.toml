@@ -4,3 +4,7 @@ members = [
     "primeoxide_lib",
     "primeoxide_bin"
 ]
+
+[profile.release-with-debug]
+inherits = "release"
+debug = true
