@@ -76,7 +76,7 @@ unsafe fn get_num_idx(num: u64) -> usize {
     let div = num/210;
     let rem = num%210;
 
-    let mut wheel_pos = WHEEL210.iter().position(|&x| x == rem).unwrap();
+    let wheel_pos = WHEEL210.iter().position(|&x| x == rem).unwrap();
 
     // Our number line starts at 11, yet our list of remainders starts at 1. The calculations doesn't
     // really work if the number line doesn't start at 1, and it's more of a headache to have the
